@@ -1,3 +1,6 @@
+
+import utils
+
 import logging
 from typing import List
 
@@ -52,12 +55,13 @@ class hiscoreData:
     This class is responsible for cleaning data & creating features.
     """
 
-    def __init__(self, data: List[dict]) -> None:
+    def __init__(self, data: List[dict], reduce_mem: bool = True) -> None:
         self.df = pd.DataFrame(data)
         self.df_clean = self.df.copy()
 
         self.skills = skills
         self.minigames = minigames
+        self.reduce_mem = reduce_mem
 
         self.__clean()
         self.__skill_ratio()
@@ -87,7 +91,7 @@ class hiscoreData:
 
         # bosses
         self.bosses = [
-            c for c in self.df_clean.columns if c not in ["total"] + skills + minigames
+            c for c in self.df_clean.columns if c in utils.BOSSES
         ]
         # total is not always on hiscores, create a total xp column
         self.df_clean["total"] = self.df_clean[self.skills].sum(axis=1)
@@ -101,12 +105,13 @@ class hiscoreData:
         self.df_clean.fillna(0, inplace=True)
 
         # apply smaller data types to reduce memory usage
-        non_total_features = [
-            col for col in self.df_clean.columns if "total" not in col
-        ]
-        self.df_clean[non_total_features] = self.df_clean[non_total_features].astype(
-            np.int32
-        )
+        if self.reduce_mem:
+            non_total_features = [
+                col for col in self.df_clean.columns if "total" not in col
+            ]
+            self.df_clean[non_total_features] = self.df_clean[non_total_features].astype(
+                np.int32
+            )
 
         # get low lvl players
         mask = self.df_clean["total"] < 1_000_000
