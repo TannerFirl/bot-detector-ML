@@ -161,4 +161,15 @@ SKILLS = [c.value for c in Skill]
 MINIGAMES = [c.value for c in Minigame]
 BOSSES = [c.value for c in Boss]
 
+class XPTable():
+    _xp_table = None
+    @classmethod
+    def exp_to_level(cls, exp):
+        if exp == 0:
+            return 1
+        if cls._xp_table is None:
+            cls._xp_table = pd.read_csv('/home/firl/bot-detector-ML/api/MachineLearning/level_exp.csv', sep = '\t')
+        return int(cls._xp_table[cls._xp_table['Exp.'] < exp].iloc[-1]['Level'])
+
+
 HISCORE_COLUMNS = ["total"] + SKILLS + MINIGAMES + BOSSES
